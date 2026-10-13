@@ -14,8 +14,8 @@ from wallet.models import Wallet
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.db.models import Q
-from administration.models import Event
-from administration.serializers import EventSerializer
+from administration.models import Event,DashboardBanner
+from administration.serializers import EventSerializer,DashboardBannerSerializer
 from shared.helpers import create_admin_log
 from shared.cache_utils import (
     cache_result, invalidate_product_cache
@@ -314,3 +314,16 @@ class UserEventViewSet(StandardResponseMixin,ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         """Retrieve a specific event with caching"""
         return super().retrieve(request, *args, **kwargs)
+
+
+class UserDashboardBannerViewSet(StandardResponseMixin,ModelViewSet):
+    """
+    ViewSet for public (logged-in user) access to the active dashboard
+    hero carousel images. Read-only; banners are managed by admins via
+    administration.DashboardBannerViewSet.
+    """
+    queryset = DashboardBanner.objects.filter(is_active=True)
+    serializer_class = DashboardBannerSerializer
+    permission_classes = [IsAuthenticated]
+
+    http_method_names = ['get']

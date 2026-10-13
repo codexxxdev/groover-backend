@@ -9,8 +9,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import action
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from .models import Settings,Event
-from .serializers import SettingsSerializer,DepositSerializer,SettingsVideoSerializer,EventSerializer,WithdrawalSerializer
+from .models import Settings,Event,DashboardBanner
+from .serializers import SettingsSerializer,DepositSerializer,SettingsVideoSerializer,EventSerializer,WithdrawalSerializer,DashboardBannerSerializer
 from shared.utils import standard_response as Response
 from shared.helpers import get_settings,create_admin_log
 from shared.cache_utils import cache_result, invalidate_settings_cache, invalidate_events_cache
@@ -389,6 +389,37 @@ class EventViewSet(StandardResponseMixin,ModelViewSet):
         response = super().destroy(request, *args, **kwargs)
         return response
 
+
+class DashboardBannerViewSet(StandardResponseMixin,ModelViewSet):
+    """
+    ViewSet for managing the dashboard hero carousel images.
+    Only admin users are allowed to access this viewset. Regular users
+    read these through game.UserDashboardBannerViewSet instead.
+    """
+
+    parser_classes = [FormParser, MultiPartParser]
+
+    queryset = DashboardBanner.objects.all()
+    serializer_class = DashboardBannerSerializer
+    permission_classes = [IsSiteAdmin]
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        create_admin_log(
+            request=request,
+            message="Created a new dashboard banner",
+        )
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        title = getattr(instance, 'title', None) or f"Dashboard Banner #{instance.pk}"
+        response = super().destroy(request, *args, **kwargs)
+        create_admin_log(
+            request=request,
+            message=f"Deleted dashboard banner: {title}.",
+        )
+        return response
 
 
 class AdminUserManagementViewSet(StandardResponseMixin,ReadOnlyModelViewSet):

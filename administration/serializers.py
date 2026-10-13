@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Settings,Event
+from .models import Settings,Event,DashboardBanner
 from finances.models import Deposit,Withdrawal
 from shared.helpers import get_settings
 from users.models import Invitation
@@ -203,6 +203,19 @@ class EventSerializer(serializers.ModelSerializer):
         """
         Automatically set the `created_by` field to the currently logged-in user for both creation and update.
         """
+        kwargs['created_by'] = self.context['request'].user
+        return super().save(**kwargs)
+
+
+class DashboardBannerSerializer(serializers.ModelSerializer):
+    created_by = UserPartialSerializer(read_only=True)
+
+    class Meta:
+        model = DashboardBanner
+        fields = ['id', 'title', 'image', 'order', 'is_active', 'created_at', 'created_by']
+        read_only_fields = ['created_at', 'created_by']
+
+    def save(self, **kwargs):
         kwargs['created_by'] = self.context['request'].user
         return super().save(**kwargs)
 

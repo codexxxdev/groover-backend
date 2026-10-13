@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Settings,Event,DailyResetTracker
+from .models import Settings,Event,DailyResetTracker,DashboardBanner
 
 @admin.register(Settings)
 class SettingsAdmin(admin.ModelAdmin):
@@ -99,6 +99,35 @@ class EventAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" style="width: 50px; height: auto;" />', obj.image.url)
         return "-"
     image_preview.short_description = "Image"
+
+
+@admin.register(DashboardBanner)
+class DashboardBannerAdmin(admin.ModelAdmin):
+    """
+    Admin configuration for the dashboard hero carousel images.
+    Add as many rows as you like (one image each) and use `order` to
+    control the sequence; only `is_active` ones show in the app.
+    """
+    list_display = ('title', 'order', 'is_active', 'created_at', 'created_by', 'image_preview')
+    list_filter = ('is_active',)
+    list_editable = ('order', 'is_active')
+    search_fields = ('title',)
+    readonly_fields = ('created_at', 'image_preview')
+    ordering = ('order', '-created_at')
+    fieldsets = (
+        (None, {
+            'fields': ('title', 'image', 'image_preview', 'order', 'is_active')
+        }),
+        ('Additional Info', {
+            'fields': ('created_at', 'created_by'),
+        }),
+    )
+
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="width: 120px; height: auto;" />', obj.image.url)
+        return "-"
+    image_preview.short_description = "Preview"
 
 
 @admin.register(DailyResetTracker)

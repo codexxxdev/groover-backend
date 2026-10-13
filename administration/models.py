@@ -64,9 +64,36 @@ class Event(models.Model):
 
     def __str__(self):
         return f"Event named {self.name}"
-    
+
     class Meta:
         ordering = ['-created_at']
+
+
+class DashboardBanner(models.Model):
+    """
+    Image shown in the dashboard's hero carousel. Admins can add as many of
+    these as they like and reorder them with the `order` field; the app
+    only shows the ones marked active.
+    """
+    title = models.CharField(max_length=255, blank=True, null=True, verbose_name="Title (internal reference only)")
+    image = models.ImageField(upload_to='dashboard_banners/', verbose_name="Banner Image")
+    order = models.PositiveIntegerField(default=0, verbose_name="Display Order")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        related_name="dashboard_banners_created",
+        null=True,
+        blank=True,
+        verbose_name="Created By"
+    )
+
+    def __str__(self):
+        return self.title or f"Dashboard Banner #{self.pk}"
+
+    class Meta:
+        ordering = ['order', '-created_at']
 
 
 def midnight_today():
